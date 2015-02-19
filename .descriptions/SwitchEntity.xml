@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<block
+    name="SwitchEntity" 
+    uuid="_8VlAAauhEeSChZ-mcihBXg" 
+    status="under construction" 
+    type="system" 
+    >
+    <required>
+        <resource path="lib/ev3classes.jar"/>
+        <block name="c0" uuid="_6YsKo6ujEeSChZ-mcihBXg"/>
+    </required>
+</block>

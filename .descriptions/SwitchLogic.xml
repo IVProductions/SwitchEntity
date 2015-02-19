@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<block
+    name="SwitchLogic" 
+    uuid="_6YsKo6ujEeSChZ-mcihBXg" 
+    status="under construction" 
+    type="block" 
+    >
+    <required>
+        <block name="c0" uuid="_CDPgcD5UEeSLNMcFh65MeQ"/>
+        <block name="c1" uuid="_Mtd4cbLJEeSBkqdkVyrO9g"/>
+    </required>
+</block>

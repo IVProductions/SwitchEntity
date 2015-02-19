@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+    version="1.0.0" 
+    uuid="_6m20YKuhEeSChZ-mcihBXg" 
+    >
+    <dependencies>
+        <dependency name="com.bitreactive.library.mqtt" uuid="_iVDkMOJLEeGulKFN7xtCsw" version="2.5.2"/>
+    </dependencies>
+</project>
