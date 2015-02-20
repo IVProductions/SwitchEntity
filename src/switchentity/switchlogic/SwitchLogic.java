@@ -30,6 +30,27 @@ public class SwitchLogic extends Block {
 		}	
 	}
 	
+	public static class RequestObject {
+		public String trainId;
+		public String approachingSwitchId;
+		public String destinationId;
+		public String requestId;
+		public boolean switchIsInPos1;
+		public String goalPositionOfSwitch;
+		public boolean success;
+		
+		public RequestObject(String trainId, String approachingSwitchId, String destinationId, String requestId) {
+			this.trainId = trainId;
+			this.approachingSwitchId = approachingSwitchId;
+			this.destinationId = destinationId;
+			this.requestId = requestId;
+		}
+		public RequestObject(String switchId, String goalPositionOfSwitch) {
+			this.approachingSwitchId = switchId;
+			this.goalPositionOfSwitch = goalPositionOfSwitch;
+		}
+	}
+	
 	public static final String switch1_id = "switch_1";
 	public static final String switch2_id = "switch_2";
 	public static final String switch3_id = "switch_3";
@@ -40,10 +61,12 @@ public class SwitchLogic extends Block {
 
 	public static java.lang.String zoneController_Id = "zonecontroller_1";
 	private Boolean[] isInPosition1 = new Boolean[4]; //TESTING
+	public boolean mqttIsInitialized;
+	public com.bitreactive.library.mqtt.MQTTMessage currentResponse;
 
 
 	public void init() {
-		isInPosition1[0] = true;isInPosition1[1] = true;isInPosition1[2] = true;isInPosition1[3] = true; //TESTING
+		
 
 		//switch1_sensor = new EV3TouchSensor(SensorPort.S1);
 		//switch2_sensor = new EV3TouchSensor(SensorPort.S2);
@@ -76,6 +99,8 @@ public class SwitchLogic extends Block {
 	}
 
 	public Parameters initMQTTParam() {		
+		isInPosition1[0] = true;isInPosition1[1] = true;isInPosition1[2] = true;isInPosition1[3] = true; //TESTING
+		
 		MQTTConfigParam m = new MQTTConfigParam("dev.bitreactive.com");
 		m.addSubscribeTopic(zoneController_Id);
 		Parameters p = new Parameters(m);
@@ -83,7 +108,6 @@ public class SwitchLogic extends Block {
 	}
 
 	public void handleMessage(MQTTMessage mqttMessage) {
-		System.out.println("Received command from controller");
 		String initialRequestString = new String(mqttMessage.getPayload());
 		System.out.println(initialRequestString);
 		String[] requestList = initialRequestString.split(";");
@@ -93,13 +117,12 @@ public class SwitchLogic extends Block {
 		String destination_Id = requestList[3]; //used to be 2
 		if (train_Id == null || !sentToZoneController.equals(zoneController_Id) || switch_Id == null || destination_Id == null) return;
 
-		int index = getIntForSwitchId(switch_Id);
-		boolean switchIsInPosition1 = isInPosition1[index];
-		
 		//SWITCH CONTROLLER HANDLING
 		if (train_Id.equals("controller") && (destination_Id.equals("position1") || destination_Id.equals("position2"))) {
+			int index = getIntForSwitchId(switch_Id);
+			boolean switchIsInPosition1 = isInPosition1[index];
 			if ((destination_Id.equals("position1") && switchIsInPosition1) || (destination_Id.equals("position2") && !switchIsInPosition1)) return;
-			sendToBlock("SETSWITCHTOPOSITION",new SwitchAndPosition(switch_Id, destination_Id));
+			sendToBlock("SETSWITCHTOPOSITION",new RequestObject(switch_Id, destination_Id));
 			return;
 		}
 		if (train_Id.equals("controller") && destination_Id.equals("terminate")) {
@@ -135,19 +158,23 @@ public class SwitchLogic extends Block {
 			}
 		 */
 
+		String request_id = requestList[4];
+		RequestObject request = new RequestObject(train_Id, switch_Id, destination_Id, request_id);
+		System.out.println("Sending request to HandleTrainTraffic block..");
+		sendToBlock("HANDLETRAINTRAFFIC", request);
 		
-		boolean setToPos1 = setSwitchToPosition1(switch_Id, destination_Id);
+		/*boolean shouldBeSetToPos1 = switchShouldBeSetToPosition1(switch_Id, destination_Id);
 
-		if (setToPos1 && switchIsInPosition1) return;
-		if ((setToPos1 && !switchIsInPosition1)) {
+		if (shouldBeSetToPos1 && switchIsInPosition1) return;
+		if ((shouldBeSetToPos1 && !switchIsInPosition1)) {
 			sendToBlock("SETSWITCHTOPOSITION",new SwitchAndPosition(switch_Id, "position1"));
 			return;
 		}
-		if (!setToPos1 && !switchIsInPosition1) return;
-		if ((!setToPos1 && switchIsInPosition1)) {
+		if (!shouldBeSetToPos1 && !switchIsInPosition1) return;
+		if ((!shouldBeSetToPos1 && switchIsInPosition1)) {
 			sendToBlock("SETSWITCHTOPOSITION",new SwitchAndPosition(switch_Id, "position2"));
 			return;
-		}
+		}*/
 	}
 
 	/*private EV3TouchSensor findSensorForSwitchId(String switch_id) {
@@ -160,35 +187,7 @@ public class SwitchLogic extends Block {
 		return null;
 	}*/
 
-	public static boolean setSwitchToPosition1(String switch_id, String destination_Id) {
-		switch(switch_id) {
-		case "switch_1":
-			switch(destination_Id) {
-			case "station_1": return true;
-			case "station_2": return false;
-			case "station_3": return false;
-			}
-		case "switch_2":
-			switch(destination_Id) {
-			case "station_1": return true;
-			case "station_2": return false;
-			case "station_3": return true;
-			}
-		case "switch_3":
-			switch(destination_Id) {
-			case "station_1": return false;
-			case "station_2": return true;
-			case "station_3": return true;
-			}
-		case "switch_4":
-			switch(destination_Id) {
-			case "station_1": return true;
-			case "station_2": return true;
-			case "station_3": return false;
-			}
-		}
-		return true;
-	}
+	
 
 
 	public static int getIntForSwitchId(String switchId) {
@@ -205,18 +204,42 @@ public class SwitchLogic extends Block {
 		return -1;
 	}
 
-	public void updateSwitchPosition(SwitchAndPosition switchAndPos) {
-		if (switchAndPos.success == false) return;
-		String switch_Id = switchAndPos.switch_Id;
-		String position = switchAndPos.position;
+	public RequestObject updateSwitchPosition(RequestObject request) {
+		String switch_Id = request.approachingSwitchId;
+		String position = request.goalPositionOfSwitch;
 		int index = getIntForSwitchId(switch_Id);
 		isInPosition1[index] = position.equals("position1") ? true : false;
+		return request;
 	}
 
 	public void initOk() {
 		System.out.println("-------------------------------");
 		System.out.println("-> "+zoneController_Id + " IS READY <-");
 		System.out.println("-------------------------------");
+		sendToBlock("MQTTISINIT",true);
+	}
+
+	public void currentPositionOfSwitchIsInPos1(RequestObject request) {
+		System.out.println("Finding current pos for switch");
+		int index = getIntForSwitchId(request.approachingSwitchId);
+		request.switchIsInPos1 = isInPosition1[index];
+		sendToBlock("RETURNSWITCHPOS",request);
+	}
+
+	public void handleTrainTrafficInitOk() {
+		System.out.println("-------------------------------");
+		System.out.println("->  TRAIN TRAFFIC HANDLER IS READY <-");
+		System.out.println("-------------------------------");
+	}
+
+	public void motorInitOk() {
+	}
+
+	public void checkIfMQTTIsInit(MQTTMessage response) {
+		if (mqttIsInitialized) {
+			sendToBlock("SENDRESPONSE", response);
+		}
+		else sendToBlock("NO");
 	}
 
 }

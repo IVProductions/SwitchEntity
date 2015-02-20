@@ -1,5 +1,6 @@
 package switchentity.motors;
 
+import switchentity.switchlogic.SwitchLogic.RequestObject;
 import switchentity.switchlogic.SwitchLogic.SwitchAndPosition;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -26,19 +27,19 @@ public class Motors extends Block {
 	}
 	
 	
-	public SwitchAndPosition setMotorToPosition(SwitchAndPosition switchAndPos) {
-		String switch_Id = switchAndPos.switch_Id;
-		String position = switchAndPos.position;
+	public void setMotorToPosition(RequestObject request) {
+		String switch_Id = request.approachingSwitchId;
+		String position = request.goalPositionOfSwitch;
 		EV3LargeRegulatedMotor motor = findMotorForSwitchId(switch_Id);
-		if (motor == null)  return switchAndPos;
+		if (motor == null)  return;
 		if (position.equals("position1")) {
-			motor.rotateTo(0);
+			motor.rotateTo(0,true);
 		}
 		else {
-			motor.rotateTo(-180);
+			motor.rotateTo(-180,true);
 		}
-		switchAndPos.success = true;
-		return switchAndPos;
+		request.success = true;
+		sendToBlock("MOTORPOSOK",request);
 	}
 	
 	public static EV3LargeRegulatedMotor findMotorForSwitchId(String switchId){
@@ -58,29 +59,36 @@ public class Motors extends Block {
 	public void setAllMotorsToPosition(String position) {
 		int angle = position.equals("position1") ? 0 : -180;
 		try {
-			switch1_motor.rotateTo(angle);
+			switch1_motor.rotateTo(angle,true);
 		}
 		catch(Exception e) {
 			System.out.println("Motor in port A could not be found");
 		}
 		try {
-			switch2_motor.rotateTo(angle);
+			switch2_motor.rotateTo(angle,true);
 		}
 		catch(Exception e) {
 			System.out.println("Motor in port B could not be found");
 		}
 		try {
-			switch3_motor.rotateTo(angle);
+			switch3_motor.rotateTo(angle,true);
 		}
 		catch(Exception e) {
 			System.out.println("Motor in port C could not be found");
 		}
 		try {
-			switch4_motor.rotateTo(angle);
+			switch4_motor.rotateTo(angle,true);
 		}
 		catch(Exception e) {
 			System.out.println("Motor in port D could not be found");
 		}
+		sendToBlock("MOTORSRESET");
+	}
+
+
+	public void isStopping() {
+		System.out.println("Motor block is stopping..");
+		sendToBlock("STOPPING");
 	}
 
 }
