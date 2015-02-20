@@ -66,8 +66,7 @@ public class SwitchLogic extends Block {
 
 
 	public void init() {
-		
-
+	
 		//switch1_sensor = new EV3TouchSensor(SensorPort.S1);
 		//switch2_sensor = new EV3TouchSensor(SensorPort.S2);
 		/*int sampleSize = switch1_sensor.sampleSize();
@@ -187,8 +186,6 @@ public class SwitchLogic extends Block {
 		return null;
 	}*/
 
-	
-
 
 	public static int getIntForSwitchId(String switchId) {
 		switch(switchId) {
@@ -216,7 +213,6 @@ public class SwitchLogic extends Block {
 		System.out.println("-------------------------------");
 		System.out.println("-> "+zoneController_Id + " IS READY <-");
 		System.out.println("-------------------------------");
-		sendToBlock("MQTTISINIT",true);
 	}
 
 	public void currentPositionOfSwitchIsInPos1(RequestObject request) {
@@ -233,13 +229,10 @@ public class SwitchLogic extends Block {
 	}
 
 	public void motorInitOk() {
+		System.out.println("-------------------------------");
+		System.out.println("->  MOTOR BLOCK IS READY <-");
+		System.out.println("-------------------------------");
 	}
 
-	public void checkIfMQTTIsInit(MQTTMessage response) {
-		if (mqttIsInitialized) {
-			sendToBlock("SENDRESPONSE", response);
-		}
-		else sendToBlock("NO");
-	}
 
 }
