@@ -31,12 +31,12 @@ public class Motors extends Block {
 		String switch_Id = request.approachingSwitchId;
 		String position = request.goalPositionOfSwitch;
 		EV3LargeRegulatedMotor motor = findMotorForSwitchId(switch_Id);
-		if (motor == null)  return;
+		if (motor == null)  {System.out.println("Motor object was null.. returned"); return;}
 		if (position.equals("position1")) {
-			motor.rotateTo(0,true);
+			motor.rotateTo(0); //with 'true' behind 0 -> motor rotates and code thread moves on instantly, without waiting for motor to finish rotating
 		}
 		else {
-			motor.rotateTo(-180,true);
+			motor.rotateTo(-180); //with 'true' behind -180 -> motor rotates and code thread moves on instantly, without waiting for motor to finish rotating
 		}
 		request.success = true;
 		sendToBlock("MOTORPOSOK",request);

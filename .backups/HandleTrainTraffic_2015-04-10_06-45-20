@@ -303,6 +303,6 @@
   <arctis:event xmi:id="_hG2tMN-cEeS1DIJWI7tY5Q" base_Transition="_hG2GIN-cEeS1DIJWI7tY5Q" triggers="_akqykN-cEeS1DIJWI7tY5Q"/>
   <arctis:event xmi:id="_jmjCwd-cEeS1DIJWI7tY5Q" base_Transition="_jmjCwN-cEeS1DIJWI7tY5Q" triggers="_akqykN-cEeS1DIJWI7tY5Q"/>
   <arctis:event xmi:id="_k5xlMN-cEeS1DIJWI7tY5Q" base_Transition="_k5w-IN-cEeS1DIJWI7tY5Q" triggers="_akqykN-cEeS1DIJWI7tY5Q"/>
-  <graphics:Shape xmi:id="_tapdQN-gEeS1DIJWI7tY5Q" x="36" y="216" width="199" height="55" base_Element="_tZ9gwN-gEeS1DIJWI7tY5Q" orientation="east"/>
+  <graphics:Shape xmi:id="_tapdQN-gEeS1DIJWI7tY5Q" x="72" y="216" width="199" height="55" base_Element="_tZ9gwN-gEeS1DIJWI7tY5Q" orientation="east"/>
   <graphics:Shape xmi:id="_8kDsYN-gEeS1DIJWI7tY5Q" aux1="" base_Element="_8ju8QN-gEeS1DIJWI7tY5Q"/>
 </xmi:XMI>
