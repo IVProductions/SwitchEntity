@@ -28,7 +28,7 @@ public class Motors extends Block {
 	
 	
 	public void setMotorToPosition(RequestObject request) {
-		String switch_Id = request.approachingSwitchId;
+		String switch_Id = request.intersectionId;
 		String position = request.goalPositionOfSwitch;
 		EV3LargeRegulatedMotor motor = findMotorForSwitchId(switch_Id);
 		if (motor == null)  {System.out.println("Motor object was null.. returned"); return;}

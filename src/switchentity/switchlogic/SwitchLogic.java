@@ -1,6 +1,10 @@
 package switchentity.switchlogic;
 
 
+import java.io.BufferedWriter;
+import java.io.Console;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 
 import lejos.hardware.Button;
@@ -20,9 +24,20 @@ public class SwitchLogic extends Block {
 	public static final String switch2_id = "switch_2";
 	public static final String switch3_id = "switch_3";
 	public static final String switch4_id = "switch_4";
+	
+	public static final String merge1_id = "merge_1";
+	public static final String merge2_id = "merge_2";
+	public static final String merge3_id = "merge_3";
+	public static final String merge4_id = "merge_4";
 
 	public static String switch_1_status = "";
 	public static String switch_2_status = "";
+	public static String switch_3_status = "";
+	public static String switch_4_status = "";
+	public static String merge_1_status = "";
+	public static String merge_2_status = "";
+	public static String merge_3_status = "";
+	public static String merge_4_status = "";
 
 	private int train_length = 10;
 	private Boolean[] isInPosition1 = new Boolean[4];
@@ -40,19 +55,19 @@ public class SwitchLogic extends Block {
 		}	
 	}
 
-	public static class SwitchStatus {
-		public String switch_Id;
+	public static class IntersectionStatus {
+		public String intersection_Id;
 		public String status;
 
-		public SwitchStatus(String switch_Id, String status) {
-			this.switch_Id = switch_Id;
+		public IntersectionStatus(String intersection_Id, String status) {
+			this.intersection_Id = intersection_Id;
 			this.status = status;
 		}
 	}
 
 	public static class RequestObject {
 		public String trainId;
-		public String approachingSwitchId;
+		public String intersectionId;
 		public String destinationId;
 		public String requestId;
 		public boolean switchIsInPos1;
@@ -61,13 +76,13 @@ public class SwitchLogic extends Block {
 
 		public RequestObject(String trainId, String approachingSwitchId, String destinationId, String requestId, String goalPositionOfSwitch) {
 			this.trainId = trainId;
-			this.approachingSwitchId = approachingSwitchId;
+			this.intersectionId = approachingSwitchId;
 			this.destinationId = destinationId;
 			this.requestId = requestId;
 			this.goalPositionOfSwitch = goalPositionOfSwitch;
 		}
-		public RequestObject(String switchId, String goalPositionOfSwitch) {
-			this.approachingSwitchId = switchId;
+		public RequestObject(String intersectionId, String goalPositionOfSwitch) {
+			this.intersectionId = intersectionId;
 			this.goalPositionOfSwitch = goalPositionOfSwitch;
 		}
 	}
@@ -76,13 +91,13 @@ public class SwitchLogic extends Block {
 		public int trackId;
 		public int trackLength;
 		public HashMap<Integer, Boolean> trackMap;
-		public String switchId;
+		public String intersectionId;
 
-		public TrackObject(int trackId, int trackLength, HashMap<Integer, Boolean> trackMap, String switchId) {
+		public TrackObject(int trackId, int trackLength, HashMap<Integer, Boolean> trackMap, String intersectionId) {
 			this.trackId = trackId;
 			this.trackLength = trackLength;
 			this.trackMap = trackMap;
-			this.switchId = switchId;
+			this.intersectionId = intersectionId;
 		}
 	}
 
@@ -105,8 +120,8 @@ public class SwitchLogic extends Block {
 	int track_6_length = 90;
 	int track_7_length = 18;
 	int track_8_length = 16;
-	int track_9_length = 11;
-	int track_10_length = 16;
+	int track_9_length = 15;
+	int track_10_length = 20;
 	int track_11_length = 40;
 	int track_12_length = 16;
 	int track_13_length = 18;
@@ -124,8 +139,8 @@ public class SwitchLogic extends Block {
 
 	//TRACK LAYOUT
 	int sleeperCounter = 0;
-	HashMap<Integer, Boolean> trackMap_1 = initTrackOverview(track_1_length);
-	HashMap<Integer, Boolean> trackMap_2 = initTrackOverview(track_2_length);
+	HashMap<Integer, Boolean> trackMap_1 = initTrackOverview(track_1_length);    //contains mapping of a track's sleepers and their current status
+	HashMap<Integer, Boolean> trackMap_2 = initTrackOverview(track_2_length);	 //occupied = true, unoccupied = false
 	HashMap<Integer, Boolean> trackMap_3 = initTrackOverview(track_3_length);
 	HashMap<Integer, Boolean> trackMap_4 = initTrackOverview(track_4_length);
 	HashMap<Integer, Boolean> trackMap_5 = initTrackOverview(track_5_length);
@@ -158,29 +173,32 @@ public class SwitchLogic extends Block {
 	}
 
 	TrackObject track_1 = new TrackObject(1, track_1_length, trackMap_1, switch1_id);
-	TrackObject track_2 = new TrackObject(2, track_2_length, trackMap_2, "");
+	TrackObject track_2 = new TrackObject(2, track_2_length, trackMap_2, merge1_id);
 	TrackObject track_3 = new TrackObject(3, track_3_length, trackMap_3, switch2_id);
-	TrackObject track_4 = new TrackObject(4, track_4_length, trackMap_4, "");
-	TrackObject track_5 = new TrackObject(5, track_5_length, trackMap_5, "");
+	TrackObject track_4 = new TrackObject(4, track_4_length, trackMap_4, merge1_id);
+	TrackObject track_5 = new TrackObject(5, track_5_length, trackMap_5, merge1_id);
 	TrackObject track_6 = new TrackObject(6, track_6_length, trackMap_6, switch1_id);
-	TrackObject track_7 = new TrackObject(7, track_7_length, trackMap_7, "");
-	TrackObject track_8 = new TrackObject(8, track_8_length, trackMap_8, "");
+	TrackObject track_7 = new TrackObject(7, track_7_length, trackMap_7, merge1_id);
+	TrackObject track_8 = new TrackObject(8, track_8_length, trackMap_8, merge1_id);
 	TrackObject track_9 = new TrackObject(9, track_9_length, trackMap_9, switch2_id);
 	TrackObject track_10 = new TrackObject(10, track_10_length, trackMap_10, "");
 	TrackObject track_11 = new TrackObject(11, track_11_length, trackMap_11, switch1_id);
-	TrackObject track_12 = new TrackObject(12, track_12_length, trackMap_12, "");
-	TrackObject track_13 = new TrackObject(13, track_13_length, trackMap_13, "");
-	TrackObject track_14 = new TrackObject(14, track_14_length, trackMap_14, "");
-	TrackObject track_15 = new TrackObject(15, track_15_length, trackMap_15, "");
-	TrackObject track_16 = new TrackObject(16, track_16_length, trackMap_16, "");
-	TrackObject track_17 = new TrackObject(17, track_17_length, trackMap_17, "");
-	TrackObject track_18 = new TrackObject(18, track_18_length, trackMap_18, "");
+	TrackObject track_12 = new TrackObject(12, track_12_length, trackMap_12, merge1_id);
+	TrackObject track_13 = new TrackObject(13, track_13_length, trackMap_13, merge1_id);
+	TrackObject track_14 = new TrackObject(14, track_14_length, trackMap_14, merge2_id);
+	TrackObject track_15 = new TrackObject(15, track_15_length, trackMap_15, merge2_id);
+	TrackObject track_16 = new TrackObject(16, track_16_length, trackMap_16, merge1_id);
+	TrackObject track_17 = new TrackObject(17, track_17_length, trackMap_17, merge2_id);
+	TrackObject track_18 = new TrackObject(18, track_18_length, trackMap_18, merge2_id);
 	TrackObject track_19 = new TrackObject(19, track_19_length, trackMap_19, switch1_id);
-	TrackObject track_20 = new TrackObject(20, track_20_length, trackMap_20, "");
-	TrackObject track_21 = new TrackObject(21, track_21_length, trackMap_21, "");
+	TrackObject track_20 = new TrackObject(20, track_20_length, trackMap_20, merge3_id);
+	TrackObject track_21 = new TrackObject(21, track_21_length, trackMap_21, merge3_id);
 	TrackObject track_22 = new TrackObject(22, track_22_length, trackMap_22, "");
 	TrackObject track_23 = new TrackObject(23, track_23_length, trackMap_23, switch2_id);
 	//TRACK LAYOUT END
+	
+	//Output log file
+	public static BufferedWriter writer;
 
 	public void init() {
 		System.out.println("MQTT ready...");
@@ -189,7 +207,14 @@ public class SwitchLogic extends Block {
 
 	public Parameters initMQTTParam() {		
 		isInPosition1[0] = true;isInPosition1[1] = true;isInPosition1[2] = true;isInPosition1[3] = true; //TESTING
+		
+		try {
+			writer = new BufferedWriter(new FileWriter("computation_time.txt"));
+		}
+		catch(IOException e) {}
 
+		
+		
 		MQTTConfigParam m = new MQTTConfigParam("192.168.0.100");
 		m.addSubscribeTopic(zoneController_Id);
 		Parameters p = new Parameters(m);
@@ -197,10 +222,21 @@ public class SwitchLogic extends Block {
 	}
 
 	public void handleMessage(MQTTMessage mqttMessage) {
+		long speedposition_start = 0;
+		
 		String initialRequestString = new String(mqttMessage.getPayload());
 		//System.out.println(initialRequestString);
 		if (!initialRequestString.contains(";")) {System.out.println("------"+initialRequestString+"------");return;}  //message only consists of one word -> ignore
 		String[] requestList = initialRequestString.split(";");
+		
+		//LOOOOOOOOOOOOOOOOOOOOOOOOL
+		if (requestList.length >= 4) {
+			String testContext = requestList[3];
+			switch(testContext) {
+			case "speedposition": speedposition_start = System.currentTimeMillis();break;
+			}
+		}
+		//LOOOOOOOOOOOOOOOOOOOOOOOOL
 		String train_Id = requestList[0];
 		String sentToZoneController = requestList[1];
 		String sentToOldZoneController = requestList[2];
@@ -223,6 +259,11 @@ public class SwitchLogic extends Block {
 			}
 			train_to_track_mapping.remove(train_Id);
 			if (train_to_track_mapping.isEmpty()) System.out.println("There are currently no trains in this zone.");
+			try {
+				writer.close();
+			} catch (IOException e) {
+				System.out.println("Could not close speedpos write file");
+			}
 			return;
 		}
 
@@ -303,8 +344,6 @@ public class SwitchLogic extends Block {
 		if (messageContext.equals("newzone")) {  //TRAIN ENTERED NEW ZONE
 			String currentTrack_Id = requestList[4];
 			String destination = requestList[5];
-
-			train_to_track_mapping.put(train_Id, Integer.parseInt(currentTrack_Id));
 			//System.out.println("New Zone:      "+initialRequestString);
 
 			//SWITCH LOGIC
@@ -315,11 +354,17 @@ public class SwitchLogic extends Block {
 				System.out.println("Could not parse trackId: "+currentTrack_Id);
 				return;
 			}
+			train_to_track_mapping.put(train_Id, currentTrackNumber);
 			TrackObject currentTrack = getTrackForNumber(currentTrackNumber);    //the track that the train just entered
 			if (currentTrack == null) return;
+			if (currentTrack.intersectionId.contains("merge")) {
+				RequestObject request = new RequestObject(train_Id, currentTrack.intersectionId, destination, "", "");
+				sendToBlock("HANDLEMERGEINTERSECTIONREQ", request);
+				return;
+			}
 			NextTrackAndSwitchPosition nextTrack = getNextTrackForTrain(currentTrackNumber, destination); //the track that train is entering next, based on destination
-			if (!currentTrack.switchId.equals("") || !nextTrack.goalSwitchPosition.equals("")) {  //only run logic if track has switch
-				RequestObject request = new RequestObject(train_Id, currentTrack.switchId, destination, "", nextTrack.goalSwitchPosition);
+			if (!currentTrack.intersectionId.equals("") || !nextTrack.goalSwitchPosition.equals("")) {  //only run logic if track has switch
+				RequestObject request = new RequestObject(train_Id, currentTrack.intersectionId, destination, "", nextTrack.goalSwitchPosition);
 				//System.out.println("Sending request to HandleTrainTraffic block - from new zone logic");
 				sendToBlock("HANDLETRAINTRAFFIC", request);
 			}
@@ -334,7 +379,7 @@ public class SwitchLogic extends Block {
 
 			//UPDATE STATUS OF THE TRACK THAT THE TRAIN IS ON => FIND THE NEW TRACK OF THE TRAIN BASED ON THE SLEEPERCOLOR AND THE LAST KNOWN TRACK OF THE TRAIN
 			int currentTrack_Id = train_to_track_mapping.get(train_Id);
-			if (currentTrack_Id == 0) return;
+			if (currentTrack_Id == 0) {System.out.println(train_Id+" crossed a track sleeper, but the zone controller couldn't find the train-to-track mapping, and therefore doesn't know what track "+train_Id+" came from.");return;}
 			int newTrackId = getNewTrackIdFromColor(currentTrack_Id, sleeperColor); //find the track id the train just entered
 			if (newTrackId == 0) {System.out.println("Ghost track sleeper read -> current track: "+currentTrack_Id+", color: "+sleeperColor);return;}   //GHOST reading of color => ignore
 			train_to_last_track_mapping.put(train_Id,currentTrack_Id);  //keep an overview of what track the train came from
@@ -361,16 +406,22 @@ public class SwitchLogic extends Block {
 			sendToBlock("SENDMESSAGETOTRAIN", response);
 			//NEW RESPONSE MESSAGE TO TRAIN END
 
-			//SWITCH LOGIC
+			//INTERSECTION LOGIC
 			if (sleeperColor.equals("GREEN")) return; //do not send switch request to "old" zone controller when train is about to enter new zone
 			TrackObject newTrack = getTrackForNumber(newTrackId);    //the track that the train just entered
+			if (newTrack == null) {System.out.println("newTrack in ColorSleeper was null!") ;return;}
+			if (newTrack.intersectionId.contains("merge")) {
+				RequestObject request = new RequestObject(train_Id, newTrack.intersectionId, destination, request_Id, "");
+				sendToBlock("HANDLEMERGEINTERSECTIONREQ", request);
+				return;
+			}
 			NextTrackAndSwitchPosition nextTrack = getNextTrackForTrain(newTrackId, destination); //the track that train is entering next, based on destination
-			if (!newTrack.switchId.equals("") || !nextTrack.goalSwitchPosition.equals("")) {  //only run logic if track has switch
-				RequestObject request = new RequestObject(train_Id, newTrack.switchId, destination, request_Id, nextTrack.goalSwitchPosition);
+			if (nextTrack == null) {System.out.println("nextTrack in ColorSleeper was null!"); return;}
+			if (!newTrack.intersectionId.equals("") || !nextTrack.goalSwitchPosition.equals("")) {  //only run logic if track has switch
+				RequestObject request = new RequestObject(train_Id, newTrack.intersectionId, destination, request_Id, nextTrack.goalSwitchPosition);
 				//System.out.println("Sending request to HandleTrainTraffic block..");
 				sendToBlock("HANDLETRAINTRAFFIC", request);
 			}
-			//else send message to let train know it's ok to continue
 			return;
 		}
 		else if (messageContext.equals("speedposition")) {
@@ -398,8 +449,18 @@ public class SwitchLogic extends Block {
 				return;
 			}
 			sendClearanceResponse(collisionCommand, train_Id);
+			try {
+				writeToFile(""+(System.currentTimeMillis()-speedposition_start));
+				speedposition_start = 0;
+			} catch (Exception e) {
+				System.out.println("Could not write newzone1 time to file!");
+			}
 			return;
 		}
+	}
+	
+	public static void writeToFile(String value) throws IOException{
+		writer.write(value+"\n");
 	}
 
 	public void sendClearanceResponse(String collisionCommand, String train_Id) {
@@ -419,8 +480,8 @@ public class SwitchLogic extends Block {
 			sendToBlock("SENDMESSAGETOTRAIN", command);
 			return;
 		}
-		else if (collisionCommand.equals("waitforswitch")) {
-			String commandString = zoneController_Id+";"+train_Id+";waitforswitch";
+		else if (collisionCommand.equals("waitforintersection")) {
+			String commandString = zoneController_Id+";"+train_Id+";waitforintersection";
 			byte[] bytes = commandString.getBytes();
 			MQTTMessage command = new MQTTMessage(bytes, zoneController_Id);
 			command.setQoS(0);
@@ -466,14 +527,14 @@ public class SwitchLogic extends Block {
 		}
 		else { //CONSIDER NEXT TRACK AS WELL
 			//System.out.println("CollisionCheck2: sleeperNumber: "+sleeperNumber + ", trackNumber: "+trackNumber+", Speed: "+speed+ ", stoppingDistanceNeeded: "+stoppingDistanceNeeded+", slowDownDistanceNeeded: "+slowdownDistanceNeeded+", start: "+(sleeperNumber+1)+", end: "+trackLength);
-			if (!currentTrack.switchId.equals("")){  //this track has a switch
-				String switchStatus = getSwitchStatusForSwitchId(currentTrack.switchId); 	//check if it's clear for this train to proceed through switch
+			if (!currentTrack.intersectionId.equals("")){  //this track has an intersection
+				String intersectionStatus = getIntersectionStatusForId(currentTrack.intersectionId); 	//check if it's clear for this train to proceed through switch
 				//System.out.println("switchStatus for track_"+currentTrack.trackId+" = "+switchStatus);
-				if (!switchStatus.equals("")) { //switch is occupied
+				if (!intersectionStatus.equals("")) { //intersection is occupied
 					//System.out.println(currentTrack.switchId+" is occupied...");
-					if (!switchStatus.equals(train_Id)) { //the switch is occupied by another train than this train!
-						//System.out.println("by another train. Send waitforswitchmessage!!");
-						return "waitforswitch";		//TELL TRAIN TO STOP AND WAIT FOR CLEARANCE
+					if (!intersectionStatus.equals(train_Id)) { //the intersection is occupied by another train than this train!
+						//System.out.println("by another train. Send waitforintersectionmessage!!");
+						return "waitforintersection";		//TELL TRAIN TO STOP AND WAIT FOR CLEARANCE
 					}
 					else {
 						//System.out.println("by this train: "+train_Id);
@@ -534,18 +595,24 @@ public class SwitchLogic extends Block {
 		return "";
 	}
 
-	public String getSwitchStatusForSwitchId(String switchId) {
-		switch(switchId) {
+	public String getIntersectionStatusForId(String intersection_Id) {
+		switch(intersection_Id) {
 		case "switch_1": return switch_1_status;
 		case "switch_2": return switch_2_status;
+		case "merge_1": return merge_1_status;
+		case "merge_2": return merge_2_status;
+		case "merge_3": return merge_3_status;
 		default: return "";
 		}
 	}
 
-	public void setSwitchStatus(String switchId, String status) {
-		switch(switchId) {
-		case "switch_1": switch_1_status = status;
-		case "switch_2": switch_2_status = status;
+	public void setIntersectionStatus(String intersectionId, String status) {
+		switch(intersectionId) {
+		case "switch_1": switch_1_status = status; break;
+		case "switch_2": switch_2_status = status; break;
+		case "merge_1": merge_1_status = status; break;
+		case "merge_2": merge_2_status = status; break;
+		case "merge_3": merge_3_status = status; break;
 		}
 	}
 
@@ -721,10 +788,11 @@ public class SwitchLogic extends Block {
 			}
 			if (sleeperNumber == train_length) {
 				TrackObject lastTrack =  getTrackForNumber(train_to_last_track_mapping.get(train_Id));
+				System.out.println("Should now pass up intersection, lastTrack: "+lastTrack.trackId+"; intersection: "+lastTrack.intersectionId);
 				lastTrack.trackMap.put(lastTrack.trackLength, false); //unoccupy last sleeper of previous track
-				if (!lastTrack.switchId.equals("")) { //if train just passed a switch, send message to controller that switch is unoccupied
+				if (!lastTrack.intersectionId.equals("")) { //if train just passed a switch, send message to controller that switch is unoccupied
 					//System.out.println(train_Id+" passed switch. Handling next request in queue..");
-					sendToBlock("HANDLENEXTREQ", lastTrack.switchId);//free the switch and handle next request in Traffic Handler block
+					sendToBlock("HANDLENEXTREQ", lastTrack.intersectionId);//free the switch and handle next request in Traffic Handler block
 				}
 			}
 		}
@@ -997,7 +1065,7 @@ public class SwitchLogic extends Block {
 	}
 
 	public RequestObject updateSwitchPosition(RequestObject request) {
-		String switch_Id = request.approachingSwitchId;
+		String switch_Id = request.intersectionId;
 		String position = request.goalPositionOfSwitch;
 		int index = getIntForSwitchId(switch_Id);
 		isInPosition1[index] = position.equals("position1") ? true : false;
@@ -1017,7 +1085,7 @@ public class SwitchLogic extends Block {
 
 	//finds out if switch x is in position 1
 	public void currentPositionOfSwitchIsInPos1(RequestObject request) {
-		int index = getIntForSwitchId(request.approachingSwitchId);
+		int index = getIntForSwitchId(request.intersectionId);
 		request.switchIsInPos1 = isInPosition1[index];
 		sendToBlock("RETURNSWITCHPOS",request);
 	}
@@ -1035,8 +1103,8 @@ public class SwitchLogic extends Block {
 	}
 
 
-	public void updateSwitchOccupiedStatus(SwitchStatus switchStatus) {
-		setSwitchStatus(switchStatus.switch_Id, switchStatus.status);
+	public void updateIntersectionOccupiedStatus(IntersectionStatus intersectionStatus) {
+		setIntersectionStatus(intersectionStatus.intersection_Id, intersectionStatus.status);
 	}
 
 
